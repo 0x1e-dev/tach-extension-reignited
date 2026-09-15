@@ -13,3 +13,4 @@ generated-src/
 .kotlin
 /signingkey.jks
 /signingkey.b64
+/local.signing.properties

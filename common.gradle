@@ -53,12 +53,20 @@ android {
         }
     }
 
+    // Local dev convenience: falls back to rootDir/local.signing.properties (gitignored)
+    // when KEY_STORE_PASSWORD/ALIAS/KEY_PASSWORD aren't set as env vars (e.g. outside CI).
+    Properties localSigningProps = new Properties()
+    File localSigningFile = rootProject.file("local.signing.properties")
+    if (localSigningFile.exists()) {
+        localSigningFile.withInputStream { localSigningProps.load(it) }
+    }
+
     signingConfigs {
         release {
             storeFile rootProject.file("signingkey.jks")
-            storePassword System.getenv("KEY_STORE_PASSWORD")
-            keyAlias System.getenv("ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            storePassword System.getenv("KEY_STORE_PASSWORD") ?: localSigningProps.getProperty("KEY_STORE_PASSWORD")
+            keyAlias System.getenv("ALIAS") ?: localSigningProps.getProperty("ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD") ?: localSigningProps.getProperty("KEY_PASSWORD")
         }
     }
 
