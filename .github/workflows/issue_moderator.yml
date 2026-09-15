@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Moderate issues
-        uses: keiyoushi/issue-moderator-action@a017be83547db6e107431ce7575f53c1dfa3296a
+        uses: keiyoushi/issue-moderator-action@b49f33365ea20bde3b96d3aebac85ba89466e185 # 2026-09-11, no tagged releases
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           duplicate-label: Duplicate
