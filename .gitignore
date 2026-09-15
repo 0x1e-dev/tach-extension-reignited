@@ -11,3 +11,5 @@ apk/
 gen
 generated-src/
 .kotlin
+/signingkey.jks
+/signingkey.b64
