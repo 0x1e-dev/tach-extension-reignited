@@ -7,6 +7,23 @@ Versions refer to the extension's `versionName` (`1.4.$versionCode`, where
 
 ## [Unreleased]
 
+### Dependencies (2026-09-16)
+
+Revisited the dependency audit from the previous session. Bumped `jsoup`
+(1.15.3 → 1.23.2) and `commons-text` (1.14.0 → 1.15.0) — pure-Java libraries,
+no compatibility concerns. `kotlinx-serialization` got a trivial patch bump
+(1.4.0 → 1.4.1, still targeting Kotlin 1.7.x).
+
+**Finding:** `kotlinx-coroutines`, `kotlinx-serialization`, and `OkHttp` are
+NOT independently upgradeable the way the original audit assumed — all three
+embed Kotlin compiler metadata, and any release built with Kotlin newer than
+our pinned `1.7.21` fails with "Module was compiled with an incompatible
+version of Kotlin" (confirmed for OkHttp 5.5.0 = Kotlin 2.1.0 metadata, and
+kotlinx-serialization/coroutines 1.11.0 = Kotlin 2.3.0 metadata). Our current
+pins (OkHttp `5.0.0-alpha.11`, coroutines `1.6.4`) are already at the
+practical ceiling for Kotlin 1.7.21. Meaningfully moving any of these three
+requires the Kotlin 2.x migration first, not a standalone task.
+
 ## [1.4.31] - 2026-09-16
 
 ### Fixed
