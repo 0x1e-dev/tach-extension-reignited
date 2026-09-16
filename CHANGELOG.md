@@ -7,6 +7,17 @@ Versions refer to the extension's `versionName` (`1.4.$versionCode`, where
 
 ## [Unreleased]
 
+## [1.4.29] - 2026-09-16
+
+### Fixed
+
+- Series details silently failing to fetch Kavita+ average-score/recommendation
+  data (caught internally, falls back gracefully, but logged an error and
+  wasted a request every time). `SeriesDetailPlusWrapperDto.ratings` was a
+  non-nullable `List<RatingDto>` with a `= emptyList()` default; non-K+-licensed
+  servers return this field as a literal JSON `null` rather than omitting it or
+  sending `[]`, which a missing-key default can't absorb. Made it nullable.
+
 ## [1.4.28] - 2026-09-16
 
 ### Fixed
