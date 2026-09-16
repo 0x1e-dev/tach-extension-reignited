@@ -990,11 +990,9 @@ class Kavita(private val suffix: String = "") : ConfigurableSource, UnmeteredSou
                 manga.apply {
                     title = (if (readingList.promoted) "🔺 " else "") + readingList.title
                     artist = "${readingList.itemCount} items"
-                    thumbnail_url = if (!readingList.coverImage.isNullOrBlank()) {
-                        "$apiUrl/image/${readingList.coverImage}?apiKey=$apiKey"
-                    } else {
-                        "$apiUrl/image/readinglist-cover?readingListId=$readingListId&apiKey=$apiKey"
-                    }
+                    // Kavita has no filename-based /image/{name} route; readinglist-cover
+                    // serves the custom cover when set and a generated one otherwise.
+                    thumbnail_url = "$apiUrl/image/readinglist-cover?readingListId=$readingListId&apiKey=$apiKey"
                     description = readingList.summary ?: "Reading List"
                     genre = genreString
                     url = manga.url
@@ -1262,11 +1260,9 @@ class Kavita(private val suffix: String = "") : ConfigurableSource, UnmeteredSou
                     title = (if (list.promoted) "🔺 " else "") + list.title
                     artist = "${list.itemCount} items"
                     author = list.ownerUserName
-                    thumbnail_url = if (!list.coverImage.isNullOrBlank()) {
-                        "$apiUrl/image/${list.coverImage}?apiKey=$apiKey"
-                    } else {
-                        "$apiUrl/Image/readinglist-cover?readingListId=${list.id}&apiKey=$apiKey"
-                    }
+                    // Kavita has no filename-based /image/{name} route; readinglist-cover
+                    // serves the custom cover when set and a generated one otherwise.
+                    thumbnail_url = "$apiUrl/Image/readinglist-cover?readingListId=${list.id}&apiKey=$apiKey"
                     description = list.summary ?: "Reading List"
                     url = "$baseUrl/ReadingList/items?readingListId=${list.id}&source=readinglist"
                     initialized = true
