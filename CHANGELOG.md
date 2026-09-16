@@ -7,6 +7,30 @@ Versions refer to the extension's `versionName` (`1.4.$versionCode`, where
 
 ## [Unreleased]
 
+## [1.4.31] - 2026-09-16
+
+### Fixed
+
+- Dynamic Cover Updates never actually updating covers on already-in-library
+  manga (always showed the volume-1-era static cover). `mangaDetailsParse` has
+  two branches depending on whether the series is present in the extension's
+  in-memory browse/search cache; the per-volume cover selection logic only
+  existed in the cache-hit branch. A routine background library refresh
+  (the primary real use case for this setting) almost never has the series
+  cached, so it silently took the other branch, which never touched
+  `thumbnail_url` at all. Extracted the selection logic into a shared
+  `resolveThumbnailUrl()` and call it from both branches. Verified live: the
+  previously-silent branch now runs the volume lookup and resolves an actual
+  per-volume cover URL.
+
+### Changed
+
+- Login now uses a client with redirect-following disabled, so a 3xx response
+  (e.g. from a reverse proxy redirecting http->https) surfaces as a clear
+  "server redirected this request" error with the target URL, instead of
+  OkHttp silently downgrading the POST to GET on the redirect and failing
+  with an opaque 404/"Authentication Failed" further down the line.
+
 ## [1.4.29] - 2026-09-16
 
 ### Fixed
