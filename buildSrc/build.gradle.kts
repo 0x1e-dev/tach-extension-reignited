@@ -10,7 +10,9 @@ repositories {
 
 dependencies {
     implementation(libs.gradle.agp)
-    implementation(libs.gradle.kotlin)
+    implementation(libs.gradle.kotlin) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler-embeddable")
+    }
     implementation(libs.gradle.serialization)
     implementation(libs.gradle.kotlinter)
 }

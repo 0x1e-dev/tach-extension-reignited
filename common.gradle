@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jmailen.kotlinter'
 
@@ -14,11 +13,12 @@ if (theme != null) evaluationDependsOn(theme.path)
 android {
     compileSdk AndroidConfig.compileSdk
 
-    namespace "eu.kanade.tachiyomi.extension"
+    namespace = "eu.kanade.tachiyomi.extension"
     sourceSets {
         main {
             manifest.srcFile "AndroidManifest.xml"
             java.srcDirs = ['src']
+            kotlin.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
         }
@@ -72,9 +72,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            vcsInfo.include false
+            signingConfig = signingConfigs.release
+            minifyEnabled = false
+            vcsInfo.include = false
         }
     }
 
@@ -83,7 +83,7 @@ android {
     }
 
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
 
     packaging {
@@ -95,17 +95,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-        freeCompilerArgs += "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
-    }
+}
 
-    kotlinter {
-        experimentalRules = true
-        disabledRules = [
-            "experimental:argument-list-wrapping", // Doesn't play well with Android Studio
-            "experimental:comment-wrapping",
-        ]
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")
     }
 }
 
@@ -131,7 +126,9 @@ tasks.register("writeManifestFile") {
     }
 }
 
-preBuild.dependsOn(writeManifestFile, lintKotlin)
-if (System.getenv("CI") != "true") {
-    lintKotlin.dependsOn(formatKotlin)
+afterEvaluate {
+    preBuild.dependsOn(writeManifestFile, tasks.named("lintKotlin"))
+    if (System.getenv("CI") != "true") {
+        tasks.named("lintKotlin").configure { dependsOn(tasks.named("formatKotlin")) }
+    }
 }

@@ -7,6 +7,79 @@ Versions refer to the extension's `versionName` (`1.4.$versionCode`, where
 
 ## [Unreleased]
 
+## [1.4.32] - 2026-09-17
+
+### Changed
+
+- Full toolchain migration: Kotlin `1.7.21` → `2.4.20`, Gradle `8.13` →
+  `9.7.1`, AGP `8.13.0` → `9.4.0`, `kotlinter-gradle` `3.13.0` → `5.7.0`,
+  OkHttp `5.0.0-alpha.11` → `5.5.0`, `kotlinx-coroutines` `1.6.4` → `1.11.0`.
+  This unblocks future dependency work that was previously capped by
+  Kotlin-compiler-metadata compatibility with `1.7.21` (see the 2026-09-16
+  finding below). `kotlinx-serialization`'s runtime library is deliberately
+  **not** bumped past `1.4.1` — see Fixed section, this one isn't just a
+  compile-time concern.
+- AGP 9's built-in Kotlin support means the extension no longer applies
+  `kotlin-android`/`kotlin("android")` explicitly in `common.gradle` or the
+  `buildSrc` convention plugins (`lib-android`, `lib-multisrc`, `utils`) —
+  AGP compiles Kotlin sources on its own now. Custom flat `src/` source-set
+  layouts needed an explicit `kotlin.srcDirs` alongside the existing
+  `java.srcDirs`, since built-in Kotlin no longer treats them as aliased.
+- `kotlinter-gradle` 5.x replaced the old `kotlinter { experimentalRules;
+  disabledRules }` DSL (removed since 3.14.0) with ktlint's own
+  `.editorconfig`-based configuration; moved our two disabled rules
+  (`argument-list-wrapping`, `comment-wrapping`) there.
+- Ran the project through kotlinter 5.7's ktlint 1.x formatter (`ktlint
+  official` code style), which reformats considerably more aggressively than
+  the old 3.13.0/ktlint 0.x it replaces (trailing commas, multi-line
+  parameter lists, expression-body functions, `SCREAMING_SNAKE_CASE` for
+  `const val`, max 140-char lines). Style-only; no behavior change.
+
+### Fixed
+
+- **Extension failing to load at all** (`ClassCastException:
+  kotlinx.coroutines.SupervisorJobImpl cannot be cast to
+  kotlin.coroutines.CoroutineContext`, crashing the whole Mihon app on
+  startup once it got past extension loading into an actual API call).
+  AGP's built-in Kotlin auto-adds `kotlin-stdlib` as an `implementation`
+  dependency regardless of the extension's own `compileOnly` declaration
+  (the convention this whole ecosystem relies on for the host app to supply
+  Kotlin/coroutines/serialization at runtime instead of bundling a second,
+  incompatible copy into every extension). The extension ended up shipping
+  its own `kotlin.coroutines.*` classes alongside Mihon's, and any object
+  crossing that boundary (e.g. combining a host-provided `SupervisorJob()`
+  with our own `CoroutineContext` interface) threw. Fixed by setting
+  `kotlin.stdlib.default.dependency=false` in `gradle.properties`.
+- **Login crashing the whole app** (`ClassNotFoundException:
+  kotlinx.serialization.internal.GeneratedSerializer$-CC`) after the above
+  fix. Unlike coroutines, `kotlinx-serialization`'s RUNTIME library (as
+  opposed to its Gradle compiler-plugin artifact, which is correctly pinned
+  to the Kotlin version) isn't just compile-time-metadata-gated — since it's
+  also `compileOnly` and resolved from whatever Mihon itself bundles at
+  runtime, our code must not reference APIs newer than what the actually
+  installed host app ships. `1.11.0`'s generated serializers reference a
+  default-method desugaring class (`GeneratedSerializer$-CC`) that doesn't
+  exist in Mihon's older bundled copy. Reverted the runtime library version
+  (not the Gradle plugin, which stays matched to Kotlin `2.4.20`) back to
+  the last confirmed-working `1.4.1`.
+- `Bad request`-class Kotlin compiler warnings surfaced once the toolchain
+  actually compiled the module for real (earlier attempts were silently
+  producing empty/`NO-SOURCE` dex output — see above): a redundant
+  `.toString()` on an already-`String` parameter, a dead `?: default` on two
+  properties that can't actually be null, an unreachable `else` branch in a
+  `when` already narrowed by an outer boolean condition, and six overrides
+  of now-deprecated `Observable`-returning `HttpSource` methods
+  (`fetchPopularManga`, `fetchLatestUpdates`, `fetchSearchManga`,
+  `fetchChapterList`, `fetchMangaDetails`, `fetchPageList`) — suppressed
+  rather than migrated, since moving to the suspend-based replacements is a
+  separate, larger effort.
+- `.github/workflows/create_release.yml`'s `target_commitish: repo` pointed
+  releases at the orphan `repo` publishing branch instead of the commit
+  actually being released, which broke `git describe --tags` for the
+  changelog-since-last-tag lookup and made every release fall back to "last
+  20 commits" regardless of how recent the previous tag was. Changed to
+  `${{ github.sha }}`.
+
 ### Dependencies (2026-09-16)
 
 Revisited the dependency audit from the previous session. Bumped `jsoup`

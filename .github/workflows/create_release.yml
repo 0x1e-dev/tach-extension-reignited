@@ -167,7 +167,7 @@ jobs:
         with:
           name: Release ${{ steps.apk_info.outputs.version }}
           tag_name: ${{ steps.apk_info.outputs.version }}
-          target_commitish: repo
+          target_commitish: ${{ github.sha }}
           body: |
             ## 🚀 Release ${{ steps.apk_info.outputs.version }}
             
