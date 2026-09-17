@@ -23,6 +23,7 @@ jobs:
         with:
           ref: repo
           fetch-depth: 0
+          fetch-tags: true
 
       # Get the merged PR info
       - name: Get PR information
